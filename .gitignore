@@ -1,0 +1,85 @@
+# --- Antigravity / AI Agent (PRIVATE DATA) ---
+.agent/
+.gemini/
+.antigravity/
+!.agent/rules/
+!.agent/workflows/
+!.agent/config/
+
+# Agent Scratchpads & Temporary Plans
+plan_*.md
+task_*.md
+*.tmp.md
+*.agent.log
+
+# --- MANTIENI LE REGOLE (SHARED) ---
+# (Ensured above with ! patterns)
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.env*
+*.key
+*.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+*.sqlite3
+
+# FFmpeg executable (generic)
+ffmpeg.exe
+ffplay.exe
+ffmpeg
+ffplay
+
+# Project specific
+*.ocr.log
+outputs/
+
+# Non-Docker startup scripts & process manager
+start.ps1
+start.sh
+switch-mode.ps1
+switch-mode.sh
+ecosystem.config.js
+
+# Docker & SSL
+docker-compose.override.yml
+ssl/
+.docker/
+users_data/
+data/
+

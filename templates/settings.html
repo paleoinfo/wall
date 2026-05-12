@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WALL - Impostazioni</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            font-size: 32px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .settings-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .settings-card h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .color-preview {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        .help-text {
+            display: block;
+            margin-top: 8px;
+            color: #888;
+            font-size: 13px;
+        }
+
+        .btn-save {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-save:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-left">
+            <a href="/gallery"
+                style="display: flex; align-items: center; text-decoration: none; color: inherit; gap: 15px;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="WALL Logo"
+                    style="height: 45px; width: auto; display: block; border-radius: 4px;">
+                <h1>WALL - Impostazioni</h1>
+            </a>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                {% if user.picture %}
+                <img src="{{ user.picture }}" alt="{{ user.name }}" class="user-avatar">
+                {% else %}
+                <div class="user-avatar"
+                    style="background: #ccc; display: flex; align-items: center; justify-content: center;">
+                    {{ user.name[0] if user.name else '?' }}
+                </div>
+                {% endif %}
+                <span>{{ user.name }}</span>
+            </div>
+            <a href="/gallery" class="btn">← Gallery</a>
+            <a href="{{ url_for('logout') }}" class="btn">Esci</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if request.args.get('success') %}
+        <div class="alert alert-success">
+            {{ request.args.get('success') }}
+        </div>
+        {% endif %}
+
+        <div class="settings-card">
+            <h2>⚙️ Personalizzazione Wall</h2>
+            <form action="{{ url_for('settings') }}" method="POST">
+                <div class="form-group">
+                    <label for="bg_color">Colore di Background Galleria</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="color" id="bg_color_picker" value="{{ bg_color }}"
+                            oninput="document.getElementById('bg_color').value = this.value"
+                            style="width: 50px; height: 40px; cursor: pointer;">
+                        <input type="text" name="bg_color" id="bg_color" class="form-control" value="{{ bg_color }}"
+                            placeholder="#f5f7fa">
+                    </div>
+                    <small class="help-text">Scegli un colore per lo sfondo della tua galleria di immagini (es. #f5f7fa,
+                        #ffffff, #2c3e50)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="thumb_size">Dimensione Miniature (px)</label>
+                    <input type="range" id="thumb_size_range" min="150" max="500" step="10" value="{{ thumb_size }}"
+                        oninput="document.getElementById('thumb_size').value = this.value">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <input type="number" name="thumb_size" id="thumb_size" class="form-control"
+                            value="{{ thumb_size }}" min="150" max="500">
+                        <span>px</span>
+                    </div>
+                    <small class="help-text">Imposta la larghezza minima delle immagini nella galleria (default:
+                        250px)</small>
+                </div>
+
+                <button type="submit" class="btn-save">Salva impostazioni</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

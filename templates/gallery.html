@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WALL - {{ username }}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            font-size: 32px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .header-logo-img {
+            height: 40px;
+            width: auto;
+            border-radius: 4px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+
+        .gallery-item:hover .btn-danger {
+            opacity: 1;
+        }
+
+        .btn-danger:hover {
+            background: #e60000;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+        }
+
+        .welcome h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .welcome p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            aspect-ratio: 1;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .no-images {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+
+        .no-images-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .image-count {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .image-count p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .image-count strong {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        /* Wall Mode Styles */
+        #wall-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: none;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            padding: 40px 0;
+        }
+
+        .wall-header {
+            position: fixed;
+            top: 20px;
+            right: 40px;
+            z-index: 1010;
+            display: flex;
+            gap: 15px;
+        }
+
+        .wall-container {
+            position: relative;
+            width: 96%;
+            min-height: 800px;
+            margin: 0 auto;
+            background: #1a1a1a url("{{ url_for('static', filename='wall.png') }}") no-repeat center center;
+            background-size: cover;
+            border: 1px solid #333;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8), 0 20px 50px rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .wall-item {
+            position: absolute;
+            transform-origin: center center;
+            cursor: pointer;
+        }
+
+
+        .wall-item img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .btn-wall {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-wall:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+        }
+
+        .wall-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+        }
+
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #f5576c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body style="background: {{ bg_color }};">
+    <div class="header">
+        <div class="header-left">
+            <img src="{{ url_for('static', filename='logo.png') }}" class="header-logo-img" alt="WALL Logo">
+            <h1>Image Mosaic Gallery</h1>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                {% if user.picture %}
+                <img src="{{ user.picture }}" alt="{{ user.name }}" class="user-avatar">
+                {% else %}
+                <div class="user-avatar"
+                    style="background: #ccc; display: flex; align-items: center; justify-content: center;">
+                    {{ user.name[0] if user.name else '?' }}
+                </div>
+                {% endif %}
+                <span>{{ user.name }}</span>
+            </div>
+            <a href="{{ url_for('settings') }}" class="btn">⚙️ Impostazioni</a>
+            <a href="{{ portal_url }}" class="btn">← Portale</a>
+            <a href="{{ url_for('logout') }}" class="btn">Esci</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome">
+            <h2>La tua galleria personale</h2>
+            <p>Utente: {{ username }}</p>
+        </div>
+
+        {% if images %}
+        <div class="image-count">
+            <p>Hai <strong>{{ images|length }}</strong> immagini nella tua galleria</p>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn-wall" onclick="openWall()">
+                    <span>🧱</span> WALL
+                </button>
+                <form id="upload-form" action="{{ url_for('upload_image') }}" method="POST"
+                    enctype="multipart/form-data">
+                    <input type="file" id="image-input" name="image" accept="image/*" style="display: none;"
+                        onchange="document.getElementById('upload-form').submit();">
+                    <button type="button" class="btn btn-primary"
+                        onclick="document.getElementById('image-input').click();">
+                        <span>➕</span> Carica Immagine
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="gallery" style="grid-template-columns: repeat(auto-fill, minmax({{ thumb_size }}px, 1fr));">
+            {% for image in images %}
+            <div class="gallery-item">
+                <form action="{{ url_for('delete_image', filename=image) }}" method="POST"
+                    onsubmit="return confirm('Sei sicuro di voler eliminare questa immagine?');">
+                    <button type="submit" class="btn-danger" title="Elimina">🗑️</button>
+                </form>
+                <img src="{{ url_for('serve_image', username=username, filename=image) }}" alt="{{ image }}"
+                    loading="lazy">
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-images">
+            <div class="no-images-icon">📷</div>
+            <h3>Nessuna immagine trovata</h3>
+            <p>La tua cartella personale è vuota</p>
+
+            <div style="margin-top: 30px;">
+                <form id="upload-form-empty" action="{{ url_for('upload_image') }}" method="POST"
+                    enctype="multipart/form-data">
+                    <input type="file" id="image-input-empty" name="image" accept="image/*" style="display: none;"
+                        onchange="document.getElementById('upload-form-empty').submit();">
+                    <button type="button" class="btn btn-primary"
+                        onclick="document.getElementById('image-input-empty').click();">
+                        <span>➕</span> Carica la tua prima immagine
+                    </button>
+                </form>
+            </div>
+
+            <p style="margin-top: 40px; font-size: 14px; color: #aaa;">
+                Cartella: users_data/{{ username }}/
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Wall Overlay -->
+    <div id="wall-overlay">
+        <div class="wall-header">
+            <button class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid white;"
+                onclick="regenerateWall()">🔄 Rigenera</button>
+            <button class="btn" style="background: #28a745; border: none;" onclick="saveWallAsJpg()">💾 Salva
+                JPG</button>
+            <button class="btn" style="background: #f5576c; border: none;" onclick="closeWall()">✕ Chiudi</button>
+        </div>
+        <div id="wall-container" class="wall-container">
+            <div id="wall-loading" class="wall-loading">
+                <div class="loader"></div>
+                <p>Piazzando le immagini sul muro...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const username = "{{ username }}";
+        const imagesList = {{ images | tojson }};
+        const wallOverlay = document.getElementById('wall-overlay');
+        const wallContainer = document.getElementById('wall-container');
+        const wallLoading = document.getElementById('wall-loading');
+
+        // Configuration
+        const MIN_SCALE = 0.2;
+        const MAX_SCALE = 0.5;
+        let loadedImages = [];
+        let wallBgImage = new Image();
+        wallBgImage.src = "{{ url_for('static', filename='wall.png') }}";
+
+        // Storage for current wall state for export
+        let currentWallItems = [];
+
+        function openWall() {
+            wallOverlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            if (loadedImages.length === 0) {
+                initWall();
+            } else {
+                placeImages();
+            }
+        }
+
+        function closeWall() {
+            wallOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function regenerateWall() {
+            placeImages();
+        }
+
+        async function initWall() {
+            wallLoading.style.display = 'block';
+            await loadAllImages();
+            placeImages();
+        }
+
+        function loadAllImages() {
+            const promises = imagesList.map(name => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = `/image/${username}/${name}`;
+                    img.onload = () => {
+                        loadedImages.push({
+                            element: img,
+                            name: name,
+                            aspect: img.width / img.height,
+                            src: img.src
+                        });
+                        resolve();
+                    };
+                    img.onerror = resolve;
+                });
+            });
+            return Promise.all(promises);
+        }
+
+        // Geometric helper functions
+        function rotatePoint(x, y, cx, cy, angle) {
+            const rad = angle * Math.PI / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+            const nx = (cos * (x - cx)) - (sin * (y - cy)) + cx;
+            const ny = (sin * (x - cx)) + (cos * (y - cy)) + cy;
+            return { x: nx, y: ny };
+        }
+
+        function pointInPolygon(point, vs) {
+            let x = point.x, y = point.y;
+            let inside = false;
+            for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+                let xi = vs[i].x, yi = vs[i].y;
+                let xj = vs[j].x, yj = vs[j].y;
+                let intersect = ((yi > y) != (yj > y)) &&
+                    (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        function getRotatedRectVertices(cx, cy, width, height, angle) {
+            const halfW = width / 2;
+            const halfH = height / 2;
+            const corners = [
+                { x: cx - halfW, y: cy - halfH },
+                { x: cx + halfW, y: cy - halfH },
+                { x: cx + halfW, y: cy + halfH },
+                { x: cx - halfW, y: cy + halfH }
+            ];
+            return corners.map(p => rotatePoint(p.x, p.y, cx, cy, angle));
+        }
+
+        function isPolygonInside(innerPoly, outerPoly) {
+            return innerPoly.every(point => pointInPolygon(point, outerPoly));
+        }
+
+        function getBounds(poly) {
+            const xs = poly.map(p => p.x);
+            const ys = poly.map(p => p.y);
+            return {
+                minX: Math.min(...xs),
+                maxX: Math.max(...xs),
+                minY: Math.min(...ys),
+                maxY: Math.max(...ys)
+            };
+        }
+
+        function placeImages() {
+            // Clear current items except loading
+            const items = wallContainer.querySelectorAll('.wall-item');
+            items.forEach(item => item.remove());
+            currentWallItems = [];
+
+            wallLoading.style.display = 'block';
+
+            const wallW = wallContainer.offsetWidth;
+            const wallH = wallContainer.offsetHeight;
+
+            const placedPolygons = [];
+
+            // Randomize order for different stacking each time
+            const shuffledImages = [...loadedImages].sort(() => Math.random() - 0.5);
+
+            shuffledImages.forEach((imgData) => {
+                let placed = false;
+                let attempts = 0;
+                const maxAttempts = 100;
+
+                while (!placed && attempts < maxAttempts) {
+                    attempts++;
+
+                    // Width between 35% and 55% of the wall width
+                    const widthPct = Math.random() * (0.55 - 0.35) + 0.35;
+                    let finalW = wallW * widthPct;
+                    let finalH = finalW / imgData.aspect;
+
+                    // Rotation between -30 and 30 degrees for more variety (clockwise and counter-clockwise)
+                    const angle = (Math.random() * 60) - 30;
+
+                    // We need a temporary center to calculate bounds
+                    const tempCx = 0;
+                    const tempCy = 0;
+                    const tempVertices = getRotatedRectVertices(tempCx, tempCy, finalW, finalH, angle);
+                    const bounds = getBounds(tempVertices);
+
+                    const widthNeeded = bounds.maxX - bounds.minX;
+                    const heightNeeded = bounds.maxY - bounds.minY;
+
+                    // Range for center
+                    // Range for center - reduced padding from 20 to 5 to expand the area
+                    const minCx = (tempCx - bounds.minX) + 5;
+                    const maxCx = wallW - (bounds.maxX - tempCx) - 5;
+                    const minCy = (tempCy - bounds.minY) + 5;
+                    const maxCy = wallH - (bounds.maxY - tempCy) - 5;
+
+                    if (maxCx <= minCx || maxCy <= minCy) continue;
+
+                    const randomCx = Math.random() * (maxCx - minCx) + minCx;
+                    const randomCy = Math.random() * (maxCy - minCy) + minCy;
+
+                    const finalVertices = getRotatedRectVertices(randomCx, randomCy, finalW, finalH, angle);
+
+                    // Check for occlusion
+                    let violatesRule = false;
+                    for (let existing of placedPolygons) {
+                        if (isPolygonInside(finalVertices, existing.vertices) || isPolygonInside(existing.vertices, finalVertices)) {
+                            violatesRule = true;
+                            break;
+                        }
+                    }
+
+                    if (!violatesRule) {
+                        const div = document.createElement('div');
+                        div.className = 'wall-item';
+                        div.style.width = `${finalW}px`;
+                        div.style.height = `${finalH}px`;
+                        div.style.left = `${randomCx - finalW / 2}px`;
+                        div.style.top = `${randomCy - finalH / 2}px`;
+                        div.style.transform = `rotate(${angle}deg)`;
+                        const zIndex = Math.floor(Math.random() * 100);
+                        div.style.zIndex = zIndex;
+
+                        const imgEl = document.createElement('img');
+                        imgEl.src = imgData.src;
+                        imgEl.draggable = false;
+
+                        div.appendChild(imgEl);
+                        wallContainer.appendChild(div);
+
+                        placedPolygons.push({ vertices: finalVertices });
+
+                        // Save for export
+                        currentWallItems.push({
+                            img: imgData.element,
+                            x: randomCx,
+                            y: randomCy,
+                            w: finalW,
+                            h: finalH,
+                            angle: angle,
+                            zIndex: zIndex
+                        });
+
+                        placed = true;
+                    }
+                }
+            });
+
+            wallLoading.style.display = 'none';
+        }
+
+        function saveWallAsJpg() {
+            const wallW = wallContainer.offsetWidth;
+            const wallH = wallContainer.offsetHeight;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = wallW;
+            canvas.height = wallH;
+            const ctx = canvas.getContext('2d');
+
+            // 1. Draw Background
+            if (wallBgImage.complete) {
+                // Calculate cover background
+                const imgAspect = wallBgImage.width / wallBgImage.height;
+                const wallAspect = wallW / wallH;
+                let drawW, drawH, drawX, drawY;
+
+                if (imgAspect > wallAspect) {
+                    drawH = wallH;
+                    drawW = wallH * imgAspect;
+                    drawX = (wallW - drawW) / 2;
+                    drawY = 0;
+                } else {
+                    drawW = wallW;
+                    drawH = wallW / imgAspect;
+                    drawX = 0;
+                    drawY = (wallH - drawH) / 2;
+                }
+                ctx.drawImage(wallBgImage, drawX, drawY, drawW, drawH);
+            } else {
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, wallW, wallH);
+            }
+
+            // 2. Sort items by zIndex
+            const sortedItems = [...currentWallItems].sort((a, b) => a.zIndex - b.zIndex);
+
+            // 3. Draw Items
+            sortedItems.forEach(item => {
+                ctx.save();
+                ctx.translate(item.x, item.y);
+                ctx.rotate(item.angle * Math.PI / 180);
+                ctx.drawImage(item.img, -item.w / 2, -item.h / 2, item.w, item.h);
+                ctx.restore();
+            });
+
+            // 4. Download
+            const link = document.createElement('a');
+            link.download = `wall_${username}_${new Date().getTime()}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+    </script>
+</body>
+
+</html>
