@@ -15,8 +15,8 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /*background: #f5f7fa;*/
-            background: #0066ff;
+            background: #f5f7fa;
+            /*background: #0066ff;*/
             min-height: 100vh;
         }
 
@@ -345,6 +345,20 @@
         </div>
     </div>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div style="position:fixed;top:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;">
+        {% for category, message in messages %}
+        <div style="background:{% if category=='error' %}#e53e3e{% else %}#38a169{% endif %};
+                    color:white;padding:12px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);
+                    font-size:14px;max-width:360px;" onclick="this.remove()">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
     <div class="container">
         <div class="welcome">
             <h2>La tua galleria personale</h2>
@@ -361,7 +375,7 @@
                 <form id="upload-form" action="{{ url_for('upload_image') }}" method="POST"
                     enctype="multipart/form-data">
                     <input type="file" id="image-input" name="image" accept="image/*" style="display: none;"
-                        onchange="document.getElementById('upload-form').submit();">
+                        onchange="validateAndUpload(this, 'upload-form');">
                     <button type="button" class="btn btn-primary"
                         onclick="document.getElementById('image-input').click();">
                         <span>➕</span> Carica Immagine
@@ -392,7 +406,7 @@
                 <form id="upload-form-empty" action="{{ url_for('upload_image') }}" method="POST"
                     enctype="multipart/form-data">
                     <input type="file" id="image-input-empty" name="image" accept="image/*" style="display: none;"
-                        onchange="document.getElementById('upload-form-empty').submit();">
+                        onchange="validateAndUpload(this, 'upload-form-empty');">
                     <button type="button" class="btn btn-primary"
                         onclick="document.getElementById('image-input-empty').click();">
                         <span>➕</span> Carica la tua prima immagine
@@ -425,6 +439,26 @@
     </div>
 
     <script>
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+        const MAX_IMAGES = 20;
+        const currentImageCount = {{ images|length }};
+
+        function validateAndUpload(input, formId) {
+            const file = input.files[0];
+            if (!file) return;
+            if (currentImageCount >= MAX_IMAGES) {
+                alert(`Limite raggiunto: puoi caricare al massimo ${MAX_IMAGES} immagini.`);
+                input.value = '';
+                return;
+            }
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`Il file è troppo grande (${(file.size/1024/1024).toFixed(1)} MB). Dimensione massima consentita: 10 MB.`);
+                input.value = '';
+                return;
+            }
+            document.getElementById(formId).submit();
+        }
+
         const username = "{{ username }}";
         const imagesList = {{ images | tojson }};
         const wallOverlay = document.getElementById('wall-overlay');

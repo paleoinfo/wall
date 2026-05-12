@@ -40,6 +40,11 @@ app.permanent_session_lifetime = timedelta(hours=8)
 # Mantieni la struttura esistente: users_data/username/
 SERVER_FOLDER = os.path.join(os.path.dirname(__file__), 'users_data')
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}
+MAX_IMAGES = 20          # Numero massimo di immagini per utente
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB per immagine
+
+# Limita la dimensione massima del body della richiesta
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 
 # ============================================
 # CONFIGURAZIONE SSO
@@ -385,17 +390,34 @@ def upload_image():
     ensure_user_folder(username)
     
     user_path = os.path.join(SERVER_FOLDER, username)
-    
+
     if file:
+        # Controlla il numero massimo di immagini
+        existing_images = [
+            f for f in os.listdir(user_path)
+            if os.path.splitext(f)[1].lower() in ALLOWED_EXTENSIONS
+        ]
+        if len(existing_images) >= MAX_IMAGES:
+            flash(f'Limite raggiunto: puoi caricare al massimo {MAX_IMAGES} immagini.', 'error')
+            return redirect(url_for('gallery'))
+
+        # Controlla la dimensione del file
+        file.seek(0, 2)  # Vai alla fine del file
+        file_size = file.tell()
+        file.seek(0)     # Riporta all'inizio
+        if file_size > MAX_FILE_SIZE:
+            flash(f'Il file è troppo grande. Dimensione massima consentita: 10 MB.', 'error')
+            return redirect(url_for('gallery'))
+
         file_ext = os.path.splitext(file.filename)[1].lower()
         if file_ext in ALLOWED_EXTENSIONS:
             filename = secure_filename(file.filename)
             # Se il file esiste già, aggiungi un prefisso casuale
             if os.path.exists(os.path.join(user_path, filename)):
                 filename = f"{random.randint(1000, 9999)}_{filename}"
-            
+
             file.save(os.path.join(user_path, filename))
-            
+
     return redirect(url_for('gallery'))
 
 
