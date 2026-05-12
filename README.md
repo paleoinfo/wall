@@ -124,5 +124,4 @@ La logica del muro utilizza un algoritmo geometrico sviluppato in JavaScript che
 3. Calcola i vertici dei rettangoli ruotati.
 4. Verifica che nessuna immagine copra interamente un'altra o sia interamente coperta, assicurando visibilità parziale per tutte le foto, tipico dei mosaici urban-art.
 
----
-Creato con ❤️ da Antigravity
+
