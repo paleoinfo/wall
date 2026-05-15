@@ -4,49 +4,64 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: wall-app
-    ports:
-      - "3020:3020"
     environment:
       # Flask Configuration
       - FLASK_HOST=0.0.0.0
       - FLASK_PORT=3020
       
-      # SSO Configuration
-      - SSO_MODE=${SSO_MODE:-dev}
-      - JWT_SECRET=${IMAGE_MOSAIC_JWT_SECRET:-dev-secret-change-in-production}
+      # SSO Configuration (DEVE essere configurato!)
+      - SSO_MODE=production
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET non configurato}
       - APP_AUDIENCE=${APP_AUDIENCE:-wall-app}
-      - PORTAL_URL=${PORTAL_URL:-http://localhost:5000}
+      - PORTAL_URL=${PORTAL_URL:?PORTAL_URL non configurato}
       
       # Application Configuration
-      - SERVER_SECRET_KEY=${SERVER_SECRET_KEY:-dev-secret-change-in-production}
-      - DEBUG=${DEBUG:-False}
+      - SERVER_SECRET_KEY=${SERVER_SECRET_KEY:?SERVER_SECRET_KEY non configurato}
+      - DEBUG=False
       
       # User and Rate Limiting
-      - DEV_USER_EMAIL=${DEV_USER_EMAIL:-demo@example.com}
       - MAX_SESSIONS_PER_USER=${MAX_SESSIONS_PER_USER:-3}
       - MAX_SESSIONS_GLOBAL=${MAX_SESSIONS_GLOBAL:-100}
     
     volumes:
-      # Persisti i dati degli utenti
+      # Persisti i dati dell'applicazione
       - wall_users_data:/app/users_data
       # Persisti il file whitelist
       - wall_data:/app/data
     
-    restart: unless-stopped
+    restart: always
     
-    # Configurazione di rete
     networks:
       - wall_network
     
-    # Limiti di risorse (opzionale)
+    # Limiti di risorse
     deploy:
       resources:
         limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
           cpus: '1'
           memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M
+    
+    # Expose solo all'interno della rete (Nginx farà da proxy)
+    expose:
+      - "3020"
+
+  nginx:
+    image: nginx:alpine
+    container_name: wall-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # Monta certificati SSL se disponibili
+    depends_on:
+      - wall
+    restart: always
+    networks:
+      - wall_network
 
 volumes:
   wall_users_data:
